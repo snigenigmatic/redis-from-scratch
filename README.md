@@ -1,1 +1,70 @@
 # redis-from-scratch
+
+A small Redis-like server written in Go. It implements a subset of Redis commands
+It communicates using the [RESP protocol](https://redis.io/docs/latest/develop/reference/protocol-spec/) and stores data in memory with optional per-key expiry.
+
+This project is meant for learning and experimentation.
+
+Quick start
+-----------
+
+1. Build and run the server:
+
+```bash
+go run cmd/server/main.go --port 6379
+```
+
+2. Test with redis-cli (recommended):
+
+```bash
+redis-cli -p 6379 PING
+# PONG
+redis-cli -p 6379 SET mykey hello
+redis-cli -p 6379 GET mykey
+# hello
+```
+
+If you don't have `redis-cli`, you can use `nc` to send raw RESP messages:
+
+```bash
+printf '*1\r\n$4\r\nPING\r\n' | nc -w 1 localhost 6379
+# +PONG
+```
+
+Key concepts and files
+----------------------
+
+- `cmd/server/main.go` - CLI entry point; loads config and starts the server.
+- `internal/server` - TCP listener, connection handling, and cleanup loop.
+- `internal/protocol` - RESP parser and writer (parsing client requests and writing replies).
+- `internal/command` - Command dispatch and command handler implementations (SET, GET, PING, etc.).
+- `internal/store` - In-memory key-value store with optional expiry and safe concurrent access.
+- `pkg/config` - Default configuration and optional config file loading.
+
+Testing
+-------
+
+- Unit tests for the store:
+
+```bash
+go test ./internal/store -v
+```
+
+- Integration script (starts server, runs commands and checks replies):
+
+```bash
+bash scripts/integration_test.sh 6381
+```
+
+How to add a command
+--------------------
+
+1. Add a new file in `internal/command` implementing the `Handler` interface:
+
+```go
+type MyCmdHandler struct{}
+func (h *MyCmdHandler) Execute(s *store.Store, args []string) Response { ... }
+```
+
+2. Register it in the `handlers` map in `internal/command/command.go` with the uppercase command name.
+

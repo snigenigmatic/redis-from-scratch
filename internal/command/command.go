@@ -1,0 +1,70 @@
+package command
+
+import (
+	"fmt"
+	"strings"
+
+	"redis-from-scratch/internal/protocol"
+	"redis-from-scratch/internal/store"
+)
+
+type Handler interface {
+	Execute(store *store.Store, args []string) Response
+}
+
+type Response struct {
+	Type  ResponseType
+	Value interface{}
+	Error error
+}
+
+type ResponseType int
+
+const (
+	TypeSimpleString ResponseType = iota
+	TypeBulkString
+	TypeInteger
+	TypeArray
+	TypeNull
+	TypeError
+)
+
+func (r Response) WriteTo(w *protocol.Writer) error {
+	switch r.Type {
+	case TypeSimpleString:
+		return w.WriteSimpleString(r.Value.(string))
+	case TypeBulkString:
+		return w.WriteBulkString(r.Value.(string))
+	case TypeInteger:
+		return w.WriteInteger(r.Value.(int))
+	case TypeArray:
+		return w.WriteArray(r.Value.([]string))
+	case TypeNull:
+		return w.WriteNull()
+	case TypeError:
+		return w.WriteError(r.Error.Error())
+	default:
+		return fmt.Errorf("unknown response type")
+	}
+}
+
+var handlers = map[string]Handler{
+	"PING":   &PingHandler{},
+	"ECHO":   &EchoHandler{},
+	"SET":    &SetHandler{},
+	"GET":    &GetHandler{},
+	"DEL":    &DelHandler{},
+	"EXISTS": &ExistsHandler{},
+	"KEYS":   &KeysHandler{},
+}
+
+func Execute(s *store.Store, cmd string, args []string) Response {
+	handler, ok := handlers[strings.ToUpper(cmd)]
+	if !ok {
+		return Response{
+			Type:  TypeError,
+			Error: fmt.Errorf("ERR unknown command '%s'", cmd),
+		}
+	}
+	return handler.Execute(s, args)
+}

@@ -1,0 +1,7 @@
+{
+  "port": 6379,
+  "max_connections": 1000,
+  "cleanup_interval": 1000000000,
+  "read_timeout": 30000000000,
+  "write_timeout": 30000000000
+}
