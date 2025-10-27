@@ -30,6 +30,11 @@ func DefaultConfig() *Config {
 	}
 }
 
+// TODO: The config file includes persistence and timeout fields but the server
+// does not currently use persistence or per-connection timeouts. Consider adding
+// persistence implementation and applying ReadTimeout/WriteTimeout on connections
+// (conn.SetReadDeadline / conn.SetWriteDeadline) in `handleConnection`.
+
 func LoadFromFile(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// TODO: Parser is basic and works for common RESP patterns. Consider hardening it to
+// handle edge cases and invalid input more robustly (large bulk lengths, partial reads,
+// malformed bytes). Add tests for malformed RESP inputs.
+
 type Parser struct {
 	reader *bufio.Reader
 }

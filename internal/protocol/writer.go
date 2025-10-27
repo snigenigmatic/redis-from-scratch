@@ -13,6 +13,9 @@ func NewWriter(w io.Writer) *Writer {
 	return &Writer{w: w}
 }
 
+// TODO: Writer covers the main RESP types. If you add complex types (e.g., nested arrays
+// or custom serialization for zset members), add helper methods and tests here.
+
 func (w *Writer) WriteSimpleString(s string) error {
 	_, err := fmt.Fprintf(w.w, "+%s\r\n", s)
 	return err

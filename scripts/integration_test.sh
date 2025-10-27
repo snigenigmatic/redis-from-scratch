@@ -5,6 +5,9 @@ set -euo pipefail
 # Starts the server on PORT (default 6380), runs a sequence of commands (SET/GET/EXISTS/KEYS/DEL)
 # and asserts expected RESP replies. Uses redis-cli if available, otherwise falls back to netcat.
 
+# TODO: Extend this script to test new data types (HSET/HGET, LPUSH/LRANGE, SADD/SMEMBERS, ZADD/ZRANGE)
+# Add assertions for type errors (e.g., calling HGET on a string key) and edge cases.
+
 PORT=${1:-6380}
 LOG=/tmp/rfs-integration.log
 

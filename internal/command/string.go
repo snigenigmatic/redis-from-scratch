@@ -75,3 +75,6 @@ func (h *GetHandler) Execute(s *store.Store, args []string) Response {
 	}
 	return Response{Type: TypeBulkString, Value: value}
 }
+
+// TODO: Add handlers for hash/list/set/zset commands in separate files.
+// For example, create `hash.go` with HSET/HGET/HDEL and corresponding store methods.

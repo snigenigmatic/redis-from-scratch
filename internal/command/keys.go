@@ -36,3 +36,6 @@ func (h *KeysHandler) Execute(s *store.Store, args []string) Response {
 	keys := s.Keys(pattern)
 	return Response{Type: TypeArray, Value: keys}
 }
+
+// TODO: Improve pattern matching for KEYS (support glob patterns like ? and []).
+// Consider implementing SCAN for incremental iteration over keys to avoid blocking on large datasets.

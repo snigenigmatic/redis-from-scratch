@@ -58,6 +58,10 @@ var handlers = map[string]Handler{
 	"KEYS":   &KeysHandler{},
 }
 
+// TODO: Add handlers for other data types (HSET/HGET for hashes, LPUSH/LRANGE for lists,
+// SADD/SMEMBERS for sets, ZADD/ZRANGE for sorted sets). Ensure handlers perform
+// type checks and return appropriate errors when the key exists with a different type.
+
 func Execute(s *store.Store, cmd string, args []string) Response {
 	handler, ok := handlers[strings.ToUpper(cmd)]
 	if !ok {

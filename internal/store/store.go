@@ -10,6 +10,15 @@ type Value struct {
 	Expiry *time.Time
 }
 
+// TODO: Extend Value to support multiple data types (hash, list, set, zset).
+// Consider adding a Type tag and per-type fields, e.g.:
+//   Type ValueType
+//   Str  string
+//   Hash map[string]string
+//   List []string
+//   ZSet *SortedSet
+// Also add store methods for each type (HashSet/HashGet, ListPush, ZAdd, etc.)
+
 type Store struct {
 	mu   sync.RWMutex
 	data map[string]Value
