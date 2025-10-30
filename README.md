@@ -70,11 +70,11 @@ func (h *MyCmdHandler) Execute(s *store.Store, args []string) Response { ... }
 
 ## TODOs
 
-- [] Add support for additional data types: hashes (HSET/HGET), lists (LPUSH/LRANGE), sets (SADD/SMEMBERS), and sorted sets (ZADD/ZRANGE).
-- [] Add command handlers and store methods for each data type and enforce type checks (return an error when a command is used on the wrong type).
-- [] Extend the integration script to exercise the new data types and to assert type-error cases.
-- [] Improve RESP parser robustness and add tests for malformed input and large bulk strings.
-- [] Implement persistence (AOF or RDB-style snapshot) and wire `pkg/config` persistence settings into the server.
-- [] Apply per-connection read/write timeouts (use `ReadTimeout`/`WriteTimeout` from config) and add tests for timeout behavior.
-- [] Improve `KEYS` pattern matching or add `SCAN` to avoid blocking on large datasets.
-- [] Add server-level integration tests (Go tests that start the server on an ephemeral port and assert RESP replies).
+- [x] Add support for additional data types: hashes (HSET/HGET), lists (LPUSH/LRANGE), sets (SADD/SMEMBERS), and sorted sets (ZADD/ZRANGE).
+- [x] Add command handlers and store methods for each data type and enforce type checks (return an error when a command is used on the wrong type).
+- [x] Extend the integration script to exercise the new data types and to assert type-error cases.
+- [x] Improve RESP parser robustness and add tests for malformed input and large bulk strings.
+- [x] Implement persistence (AOF or RDB-style snapshot) and wire `pkg/config` persistence settings into the server.
+- [x] Apply per-connection read/write timeouts (use `ReadTimeout`/`WriteTimeout` from config) and add tests for timeout behavior.
+- [x] Improve `KEYS` pattern matching or add `SCAN` to avoid blocking on large datasets.
+- [x] Add server-level integration tests (Go tests that start the server on an ephemeral port and assert RESP replies).
