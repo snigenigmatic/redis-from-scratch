@@ -27,6 +27,7 @@ const (
 	TypeArray
 	TypeNull
 	TypeError
+	TypeNestedArray
 )
 
 func (r Response) WriteTo(w *protocol.Writer) error {
@@ -43,6 +44,12 @@ func (r Response) WriteTo(w *protocol.Writer) error {
 		return w.WriteNull()
 	case TypeError:
 		return w.WriteError(r.Error.Error())
+	case TypeNestedArray:
+		// Value should be a map with "cursor" and "keys" fields
+		data := r.Value.(map[string]interface{})
+		cursor := data["cursor"].(string)
+		keys := data["keys"].([]string)
+		return w.WriteNestedArray(cursor, keys)
 	default:
 		return fmt.Errorf("unknown response type")
 	}

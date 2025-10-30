@@ -52,3 +52,26 @@ func (w *Writer) WriteArray(arr []string) error {
 	}
 	return nil
 }
+
+// WriteNestedArray writes an array containing a cursor string and a sub-array of keys
+// Format: *2\r\n$N\r\ncursor\r\n*M\r\n...keys...
+func (w *Writer) WriteNestedArray(cursor string, keys []string) error {
+	// Write outer array of 2 elements
+	if _, err := fmt.Fprintf(w.w, "*2\r\n"); err != nil {
+		return err
+	}
+	// Write cursor as bulk string
+	if err := w.WriteBulkString(cursor); err != nil {
+		return err
+	}
+	// Write keys as inner array
+	if _, err := fmt.Fprintf(w.w, "*%d\r\n", len(keys)); err != nil {
+		return err
+	}
+	for _, key := range keys {
+		if err := w.WriteBulkString(key); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -121,22 +121,8 @@ func (s *Store) Exists(keys ...string) int {
 }
 
 func (s *Store) Keys(pattern string) []string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	keys := make([]string, 0)
-	now := time.Now()
-
-	for k, v := range s.data {
-		if v.Expiry != nil && now.After(*v.Expiry) {
-			continue
-		}
-		// Simple pattern matching (* means all)
-		if pattern == "*" || k == pattern {
-			keys = append(keys, k)
-		}
-	}
-	return keys
+	// Use the existing KeysPattern method which has proper glob matching
+	return s.KeysPattern(pattern)
 }
 
 func (s *Store) CleanupExpired() int {

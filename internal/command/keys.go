@@ -110,11 +110,14 @@ func (h *ScanHandler) Execute(s *store.Store, args []string) Response {
 		return Response{Type: TypeError, Error: err}
 	}
 
-	// Response format: [nextCursor, [keys...]]
-	result := []string{fmt.Sprintf("%d", nextCursor)}
-	result = append(result, keys...)
-
-	return Response{Type: TypeArray, Value: result}
+	// Response format: [nextCursor, [keys...]] - nested array
+	return Response{
+		Type: TypeNestedArray,
+		Value: map[string]interface{}{
+			"cursor": fmt.Sprintf("%d", nextCursor),
+			"keys":   keys,
+		},
+	}
 }
 
 // HSCAN handler for scanning hash fields
@@ -165,10 +168,14 @@ func (h *HScanHandler) Execute(s *store.Store, args []string) Response {
 		return Response{Type: TypeError, Error: err}
 	}
 
-	result := []string{fmt.Sprintf("%d", nextCursor)}
-	result = append(result, fields...)
-
-	return Response{Type: TypeArray, Value: result}
+	// Response format: [nextCursor, [fields...]] - nested array
+	return Response{
+		Type: TypeNestedArray,
+		Value: map[string]interface{}{
+			"cursor": fmt.Sprintf("%d", nextCursor),
+			"keys":   fields,
+		},
+	}
 }
 
 // Register SCAN handlers

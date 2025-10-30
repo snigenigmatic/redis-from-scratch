@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"strings"
 	"testing"
@@ -58,14 +59,36 @@ func sendCommand(t *testing.T, port int, args []string) string {
 		fmt.Fprintf(conn, "$%d\r\n%s\r\n", len(arg), arg)
 	}
 
-	// Receive and parse the response
-	resp := make([]byte, 1024)
-	n, err := conn.Read(resp)
-	if err != nil {
-		t.Fatalf("failed to read response: %v", err)
+	// Set a read deadline to avoid hanging
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+
+	// Receive and parse the response - read in a loop to get complete response
+	resp := make([]byte, 4096)
+	totalRead := 0
+
+	// Read with small timeout between reads to collect all data
+	for totalRead < len(resp) {
+		n, err := conn.Read(resp[totalRead:])
+		if err != nil {
+			if err == io.EOF || (n > 0 && totalRead > 0) {
+				// Got some data and connection closed, or partial read
+				totalRead += n
+				break
+			}
+			if totalRead > 0 {
+				// We got some data before the error
+				break
+			}
+			t.Fatalf("failed to read response: %v", err)
+		}
+		totalRead += n
+
+		// Give a small window for more data, but don't wait too long
+		// Use a very short timeout (10ms) to avoid delaying tests
+		conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond))
 	}
 
-	return string(resp[:n])
+	return string(resp[:totalRead])
 }
 
 func TestServerPing(t *testing.T) {
@@ -275,8 +298,11 @@ func TestServerMultipleConnections(t *testing.T) {
 			}
 			defer conn.Close()
 
-			// Send command
-			fmt.Fprintf(conn, "*3\r\n$3\r\nSET\r\n$5\r\nkey_%d\r\n$6\r\nvalue_%d\r\n", id, id)
+			// Send command with properly calculated byte lengths
+			key := fmt.Sprintf("key_%d", id)
+			value := fmt.Sprintf("value_%d", id)
+			fmt.Fprintf(conn, "*3\r\n$3\r\nSET\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n",
+				len(key), key, len(value), value)
 
 			// Read response
 			buf := make([]byte, 1024)
