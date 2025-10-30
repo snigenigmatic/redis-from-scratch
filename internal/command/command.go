@@ -69,6 +69,8 @@ var handlers = map[string]Handler{
 	"DEL":       &DelHandler{},
 	"EXISTS":    &ExistsHandler{},
 	"KEYS":      &KeysHandler{},
+	"SCAN":      &ScanHandler{},
+	"HSCAN":     &HScanHandler{},
 }
 
 // TODO: Add handlers for other data types (HSET/HGET for hashes, LPUSH/LRANGE for lists,

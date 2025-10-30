@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"redis-from-scratch/internal/command"
+	"redis-from-scratch/internal/persistence"
 	"redis-from-scratch/internal/store"
 	"redis-from-scratch/pkg/config"
 )
@@ -17,6 +19,7 @@ type Server struct {
 	listener net.Listener
 	wg       sync.WaitGroup
 	quit     chan struct{}
+	aof      *persistence.AOF
 }
 
 func New(cfg *config.Config) *Server {
@@ -26,36 +29,25 @@ func New(cfg *config.Config) *Server {
 		quit:  make(chan struct{}),
 	}
 
-	go s.cleanupLoop()
-
-	return s
-}
-
-func (s *Server) Start() error {
-	addr := fmt.Sprintf(":%d", s.cfg.Port)
-	listener, err := net.Listen("tcp", addr)
-	if err != nil {
-		return fmt.Errorf("failed to start server: %w", err)
-	}
-
-	s.listener = listener
-	log.Printf("Redis server listening on %s", addr)
-
-	for {
-		conn, err := listener.Accept()
+	// Initialize AOF if enabled
+	if cfg.EnablePersistence {
+		aof, err := persistence.New(cfg.PersistencePath, true)
 		if err != nil {
-			select {
-			case <-s.quit:
-				return nil
-			default:
-				log.Printf("Error accepting connection: %v", err)
-				continue
+			log.Printf("Warning: failed to initialize AOF: %v", err)
+		} else {
+			s.aof = aof
+			// Replay commands from AOF
+			entries, err := aof.ReadCommands()
+			if err != nil {
+				log.Printf("Warning: failed to read AOF: %v", err)
+			} else {
+				replayCommands(s.store, entries)
 			}
 		}
-
-		s.wg.Add(1)
-		go s.handleConnection(conn)
 	}
+
+	go s.cleanupLoop()
+	return s
 }
 
 func (s *Server) Stop() {
@@ -63,8 +55,18 @@ func (s *Server) Stop() {
 	if s.listener != nil {
 		s.listener.Close()
 	}
+	if s.aof != nil {
+		s.aof.Close()
+	}
 	s.wg.Wait()
 	log.Println("Server stopped")
+}
+
+func replayCommands(s *store.Store, entries []persistence.AOFEntry) {
+	for _, e := range entries {
+		// Use command.Execute to replay
+		command.Execute(s, e.Command, e.Args)
+	}
 }
 
 func (s *Server) cleanupLoop() {
@@ -82,4 +84,33 @@ func (s *Server) cleanupLoop() {
 			return
 		}
 	}
+}
+
+// Start begins listening on the configured port and accepts connections.
+func (s *Server) Start() error {
+	addr := fmt.Sprintf(":%d", s.cfg.Port)
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
+	s.listener = ln
+
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				select {
+				case <-s.quit:
+					return
+				default:
+					log.Printf("accept error: %v", err)
+					continue
+				}
+			}
+			s.wg.Add(1)
+			go s.handleConnection(conn)
+		}
+	}()
+
+	return nil
 }

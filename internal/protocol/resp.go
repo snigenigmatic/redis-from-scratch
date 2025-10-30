@@ -13,11 +13,15 @@ import (
 // malformed bytes). Add tests for malformed RESP inputs.
 
 type Parser struct {
-	reader *bufio.Reader
+	reader    *bufio.Reader
+	maxLength int64
 }
 
 func NewParser(r io.Reader) *Parser {
-	return &Parser{reader: bufio.NewReader(r)}
+	return &Parser{
+		reader:    bufio.NewReader(r),
+		maxLength: 512 * 1024 * 1024, // 512 MB max length
+	}
 }
 
 func (p *Parser) Parse() ([]string, error) {
@@ -39,51 +43,101 @@ func (p *Parser) Parse() ([]string, error) {
 }
 
 func (p *Parser) parseArray(line string) ([]string, error) {
+	if len(line) < 2 {
+		return nil, fmt.Errorf("malformed array header")
+	}
+
 	count, err := strconv.Atoi(line[1:])
 	if err != nil {
 		return nil, fmt.Errorf("invalid array length: %w", err)
 	}
 
-	args := make([]string, count)
+	if count < 0 {
+		return nil, fmt.Errorf("negative array length: %d", count)
+	}
+
+	if count > 1000000 {
+		return nil, fmt.Errorf("array length too large: %d", count)
+	}
+
+	args := make([]string, 0, count)
 	for i := 0; i < count; i++ {
 		bulkLine, err := p.readLine()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error reading bulk string %d: %w", i, err)
+		}
+
+		if len(bulkLine) == 0 {
+			return nil, fmt.Errorf("empty bulk string header at index %d", i)
 		}
 
 		if bulkLine[0] != '$' {
-			return nil, fmt.Errorf("expected bulk string")
+			return nil, fmt.Errorf("expected bulk string at index %d, got %c", i, bulkLine[0])
 		}
 
-		length, err := strconv.Atoi(bulkLine[1:])
+		length, err := strconv.ParseInt(bulkLine[1:], 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("invalid bulk string length: %w", err)
+			return nil, fmt.Errorf("invalid bulk string length at index %d: %w", i, err)
+		}
+
+		if length < -1 {
+			return nil, fmt.Errorf("invalid bulk string length at index %d: %d", i, length)
 		}
 
 		if length == -1 {
-			args[i] = ""
+			// Null bulk string
+			args = append(args, "")
 			continue
 		}
 
-		buf := make([]byte, length+2)
-		if _, err := io.ReadFull(p.reader, buf); err != nil {
-			return nil, err
+		if length > p.maxLength {
+			return nil, fmt.Errorf("bulk string exceeds max length at index %d: %d > %d", i, length, p.maxLength)
 		}
 
-		args[i] = string(buf[:length])
+		buf := make([]byte, length+2)
+		n, err := io.ReadFull(p.reader, buf)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read bulk string data at index %d: %w (read %d/%d bytes)", i, err, n, length+2)
+		}
+
+		if buf[length] != '\r' || buf[length+1] != '\n' {
+			return nil, fmt.Errorf("bulk string at index %d missing CRLF terminator", i)
+		}
+
+		args = append(args, string(buf[:length]))
 	}
 
 	return args, nil
 }
 
 func (p *Parser) parseInline(line string) ([]string, error) {
-	return strings.Fields(line), nil
+	parts := strings.Fields(line)
+	if len(parts) == 0 {
+		return nil, fmt.Errorf("empty inline command")
+	}
+	return parts, nil
 }
 
 func (p *Parser) readLine() (string, error) {
 	line, err := p.reader.ReadString('\n')
 	if err != nil {
+		if err == io.EOF && len(line) > 0 {
+			return "", fmt.Errorf("incomplete line: %w", err)
+		}
 		return "", err
 	}
-	return strings.TrimSpace(line), nil
+
+	line = strings.TrimRight(line, "\r\n")
+
+	if len(line) == 0 {
+		return "", fmt.Errorf("empty line")
+	}
+
+	return line, nil
+}
+
+// SetMaxBulkLength sets the maximum allowed bulk string length parsed by the parser.
+// This is useful for tests to restrict sizes and for callers to limit memory use.
+func (p *Parser) SetMaxBulkLength(n int64) {
+	p.maxLength = n
 }
