@@ -49,13 +49,26 @@ func (r Response) WriteTo(w *protocol.Writer) error {
 }
 
 var handlers = map[string]Handler{
-	"PING":   &PingHandler{},
-	"ECHO":   &EchoHandler{},
-	"SET":    &SetHandler{},
-	"GET":    &GetHandler{},
-	"DEL":    &DelHandler{},
-	"EXISTS": &ExistsHandler{},
-	"KEYS":   &KeysHandler{},
+	"PING":      &PingHandler{},
+	"ECHO":      &EchoHandler{},
+	"SET":       &SetHandler{},
+	"GET":       &GetHandler{},
+	"HSET":      &HSetHandler{},
+	"HGET":      &HGetHandler{},
+	"HDEL":      &HDelHandler{},
+	"HGETALL":   &HGetAllHandler{},
+	"LPUSH":     &LPushHandler{},
+	"RPUSH":     &RPushHandler{},
+	"LPOP":      &LPopHandler{},
+	"RPOP":      &RPopHandler{},
+	"LRANGE":    &LRangeHandler{},
+	"SADD":      &SAddHandler{},
+	"SMEMBERS":  &SMembersHandler{},
+	"SREM":      &SRemHandler{},
+	"SISMEMBER": &SISMemberHandler{},
+	"DEL":       &DelHandler{},
+	"EXISTS":    &ExistsHandler{},
+	"KEYS":      &KeysHandler{},
 }
 
 // TODO: Add handlers for other data types (HSET/HGET for hashes, LPUSH/LRANGE for lists,
