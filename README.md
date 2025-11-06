@@ -5,6 +5,11 @@ It communicates using the [RESP protocol](https://redis.io/docs/latest/develop/r
 
 This project is meant for learning and experimentation.
 
+Why Redis?
+- Quick retrieval and fast communication are the cornerstone of modern storage and communication.
+- Redis is lightweight, it is in-memory and honestly quite robust.
+(And I needed something to build that is not related to any of my courses :D)
+
 Quick start
 -----------
 
