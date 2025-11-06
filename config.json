@@ -1,5 +1,5 @@
 {
-  "port": 6379,
+  "port": 6378
   "max_connections": 1000,
   "cleanup_interval": 1000000000,
   "read_timeout": 30000000000,
