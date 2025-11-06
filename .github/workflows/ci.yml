@@ -1,4 +1,4 @@
-name: Go
+name: Go CI
 
 on:
   push:
@@ -7,35 +7,55 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
-        go: [1.20,1.21,1.22]
+        go: [1.22]
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go }}
-
-      - name: Cache Go modules
+      - name: Cache modules
         uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
-
       - name: Download modules
         run: go mod download
-
       - name: Build
         run: go build -v ./...
-
       - name: Vet
         run: go vet ./...
+      - name: Test
+        run: go test -v ./...
 
-      - name: Test (race)
+  race-test:
+    if: github.ref == 'refs/heads/main'   # run only on pushes to main
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        go: [1.22]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Cache modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
+      - name: Download modules
+        run: go mod download
+      - name: Race tests
         run: go test -v ./... -race
