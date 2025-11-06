@@ -31,19 +31,17 @@ func main() {
 
 	srv := server.New(cfg)
 
-	// Handle graceful shutdown
+	// Handle graceful shutdown: wait for signal and stop the server.
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-sigChan
-		log.Println("Shutting down server...")
-		srv.Stop()
-		os.Exit(0)
-	}()
 
 	log.Printf("Starting Redis server on port %d", cfg.Port)
 	if err := srv.Start(); err != nil {
 		log.Fatal(err)
 	}
+
+	// Block here until we receive a shutdown signal, then stop the server.
+	<-sigChan
+	log.Println("Shutting down server...")
+	srv.Stop()
 }

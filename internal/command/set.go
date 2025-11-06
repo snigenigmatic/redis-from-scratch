@@ -10,7 +10,7 @@ type SAddHandler struct{}
 
 func (h *SAddHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 2 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'sadd' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'sadd' command")}
 	}
 	key := args[0]
 	members := args[1:]
@@ -25,7 +25,7 @@ type SMembersHandler struct{}
 
 func (h *SMembersHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 1 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'smembers' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'smembers' command")}
 	}
 	key := args[0]
 	members, err := s.SetMembers(key)
@@ -39,7 +39,7 @@ type SRemHandler struct{}
 
 func (h *SRemHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 2 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'srem' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'srem' command")}
 	}
 	key := args[0]
 	members := args[1:]
@@ -54,7 +54,7 @@ type SISMemberHandler struct{}
 
 func (h *SISMemberHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 2 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'sismember' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'sismember' command")}
 	}
 	key := args[0]
 	member := args[1]

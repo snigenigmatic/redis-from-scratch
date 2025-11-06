@@ -10,7 +10,7 @@ type LPushHandler struct{}
 
 func (h *LPushHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 2 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'lpush' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'lpush' command")}
 	}
 	key := args[0]
 	values := args[1:]
@@ -25,7 +25,7 @@ type RPushHandler struct{}
 
 func (h *RPushHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 2 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'rpush' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'rpush' command")}
 	}
 	key := args[0]
 	values := args[1:]
@@ -40,7 +40,7 @@ type LPopHandler struct{}
 
 func (h *LPopHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 1 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'lpop' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'lpop' command")}
 	}
 	key := args[0]
 	val, ok, err := s.ListLPop(key)
@@ -57,7 +57,7 @@ type RPopHandler struct{}
 
 func (h *RPopHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 1 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'rpop' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'rpop' command")}
 	}
 	key := args[0]
 	val, ok, err := s.ListRPop(key)
@@ -74,18 +74,18 @@ type LRangeHandler struct{}
 
 func (h *LRangeHandler) Execute(s *store.Store, args []string) Response {
 	if len(args) < 3 {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR wrong number of arguments for 'lrange' command")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : wrong number of arguments for 'lrange' command")}
 	}
 	key := args[0]
 	// parse start and stop
 	var start, stop int
 	_, err := fmt.Sscanf(args[1], "%d", &start)
 	if err != nil {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR invalid start index")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : invalid start index")}
 	}
 	_, err = fmt.Sscanf(args[2], "%d", &stop)
 	if err != nil {
-		return Response{Type: TypeError, Error: fmt.Errorf("ERR invalid stop index")}
+		return Response{Type: TypeError, Error: fmt.Errorf("ERR : invalid stop index")}
 	}
 	arr, err := s.ListRange(key, start, stop)
 	if err != nil {
