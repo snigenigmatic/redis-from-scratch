@@ -1,0 +1,13 @@
+services:
+  rfs:
+    build: .
+    image: redis-from-scratch:latest
+    container_name: redis-from-scratch
+    # Map host 6378 -> container 6378 so you don't conflict with local redis
+    ports:
+      - "6378:6378"
+    # Persist data (map to your project's persistence path) - change path as needed
+    volumes:
+      - ./data:/var/lib/rfs
+    command: ["--port","6378"]
+    restart: unless-stopped

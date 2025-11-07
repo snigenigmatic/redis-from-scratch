@@ -1,0 +1,17 @@
+# VCS / editor
+.git
+.gitignore
+.vscode
+.idea
+
+# Build artifacts, logs
+bin
+/tmp
+*.log
+
+# Local data
+/data
+node_modules
+
+# CI, docs
+.github
