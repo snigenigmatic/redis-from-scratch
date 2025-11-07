@@ -13,7 +13,7 @@ import (
 
 func main() {
 	configPath := flag.String("config", "", "path to config file")
-	port := flag.Int("port", 6379, "port to listen on")
+	port := flag.Int("port", 6378, "port to listen on")
 	flag.Parse()
 
 	cfg := config.DefaultConfig()
@@ -25,9 +25,7 @@ func main() {
 			cfg = loadedCfg
 		}
 	}
-	if *port != 6379 {
-		cfg.Port = *port
-	}
+	cfg.Port = *port
 
 	srv := server.New(cfg)
 
