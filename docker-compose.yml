@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   rfs:
     build: .
@@ -10,5 +9,5 @@ services:
     # Persist data (map to your project's persistence path) - change path as needed
     volumes:
       - ./data:/var/lib/rfs
-    command: ["--port","6379"]
+    command: ["--port","6378"]
     restart: unless-stopped
