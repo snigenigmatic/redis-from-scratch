@@ -53,6 +53,21 @@ func (w *Writer) WriteArray(arr []string) error {
 	return nil
 }
 
+// WriteZsetMember writes a zset member as a two-element array: [score, member]
+// Format: *2\r\n$N\r\nscore\r\n$M\r\nmember\r\n
+func (w *Writer) WriteZsetMember(score float64, member string) error {
+	if _, err := fmt.Fprintf(w.w, "*2\r\n"); err != nil {
+		return err
+	}
+	if err := w.WriteBulkString(fmt.Sprintf("%f", score)); err != nil {
+		return err
+	}
+	if err := w.WriteBulkString(member); err != nil {
+		return err
+	}
+	return nil
+}
+
 // WriteNestedArray writes an array containing a cursor string and a sub-array of keys
 // Format: *2\r\n$N\r\ncursor\r\n*M\r\n...keys...
 func (w *Writer) WriteNestedArray(cursor string, keys []string) error {
