@@ -59,7 +59,7 @@ func (w *Writer) WriteZsetMember(score float64, member string) error {
 	if _, err := fmt.Fprintf(w.w, "*2\r\n"); err != nil {
 		return err
 	}
-	if err := w.WriteBulkString(fmt.Sprintf("%f", score)); err != nil {
+	if err := w.WriteBulkString(fmt.Sprintf("%g", score)); err != nil {
 		return err
 	}
 	if err := w.WriteBulkString(member); err != nil {
